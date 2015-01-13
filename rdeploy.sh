@@ -39,7 +39,7 @@ URL_GIT=$3
 mkdir $DIR_BASE
 
 PATH_TO_PROJECT="$DIR_BASE/$VHOST_FILE_NAME"
-PATH_TO_PROJECT_DEVELOP="$DIR_BASE/$VHOST_FILE_NAME_develop"
+PATH_TO_PROJECT_DEVELOP="$DIR_BASE/${VHOST_FILE_NAME}_develop"
 
 PATH_TO_PUBLIC="$PATH_TO_PROJECT/public"
 PATH_TO_PUBLIC_DEVELOP="$PATH_TO_PROJECT_DEVELOP/public"
@@ -76,7 +76,11 @@ chmod 600 /etc/apt/sources.list.d/passenger.list
 
 apt-get update
 apt-get -y upgrade
-apt-get -y install nginx-extras passenger
+apt-get -y install nginx-extras passenger bundler
+bundle install
+RAILS_ENV=production rake db:create db:migrate
+chmod 777 "${PATH_TO_PROJECT}/tmp/cache"
+
 
 echo "passenger_root /usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini;" > /etc/nginx/conf.d/passenger.conf 
 echo "passenger_ruby /usr/bin/ruby;" >> /etc/nginx/conf.d/passenger.conf
@@ -90,13 +94,13 @@ echo "        access_log /var/log/nginx/access_$VHOST_FILE_NAME.log;" >> $SITES_
 echo "        error_log /var/log/nginx/error_$VHOST_FILE_NAME.log;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 echo "    }" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 
-echo "    server {" > $SITES_AVAILABLED$VHOST_FILE_NAME
+echo "    server {" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 echo "        listen 80;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 echo "        server_name $DEV_NAME;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 echo "        root $PATH_TO_PUBLIC_DEVELOP;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 echo "        passenger_enabled on;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
-echo "        access_log /var/log/nginx/access_$VHOST_FILE_NAME_develop.log;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
-echo "        error_log /var/log/nginx/error_$VHOST_FILE_NAME_develop.log;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
+echo "        access_log /var/log/nginx/access_${VHOST_FILE_NAME}_develop.log;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
+echo "        error_log /var/log/nginx/error_${VHOST_FILE_NAME}_develop.log;" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 echo "    }" >> $SITES_AVAILABLED$VHOST_FILE_NAME
 
 ln $SITES_AVAILABLED$VHOST_FILE_NAME -s $SITES_ENABLED$VHOST_FILE_NAME
